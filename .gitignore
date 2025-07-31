@@ -11,6 +11,7 @@
 /gmtk2025/[Ll]ogs/
 /gmtk2025/[Uu]ser[Ss]ettings/
 /gmtk2025/*.log
+/build
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
