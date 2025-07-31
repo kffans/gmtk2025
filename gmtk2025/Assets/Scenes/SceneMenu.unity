@@ -211,7 +211,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: SceneFight
+          m_StringArgument: SceneMainLevel
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &3603112
@@ -559,28 +559,11 @@ MonoBehaviour:
   sfxSource: {fileID: 326450448}
   musicClips:
   - {fileID: 8300000, guid: 72874fe38a2e6de499ebedfb9202cd0f, type: 3}
-  - {fileID: 8300000, guid: b38c195a153807040aee7d0ab25f90e6, type: 3}
-  - {fileID: 8300000, guid: a6fb367d9e0668c4db3baebebf0ff9d3, type: 3}
+  - {fileID: 8300000, guid: 2208e05ff9f911c46918c4f68d0930b7, type: 3}
+  - {fileID: 8300000, guid: 29b0f4450db912646acefb8915181fe3, type: 3}
   - {fileID: 8300000, guid: 789e46590b0630f419aa3460f37b6cd4, type: 3}
   sfxClips:
-  - {fileID: 8300000, guid: b97b516063cd71649a76263f3ab68cc0, type: 3}
   - {fileID: 8300000, guid: 2208e05ff9f911c46918c4f68d0930b7, type: 3}
-  - {fileID: 8300000, guid: 3cee6f77f604d444bba676a7e172beb5, type: 3}
-  - {fileID: 8300000, guid: ea6e278386a9ec74b9b2d4f05c29a730, type: 3}
-  - {fileID: 8300000, guid: 543e826ea4772d24d9239005f8e94584, type: 3}
-  - {fileID: 8300000, guid: 80bf7bc9852c520438be16134e1742a1, type: 3}
-  - {fileID: 8300000, guid: 33745e4e711fec145b2341468463916d, type: 3}
-  - {fileID: 8300000, guid: c588f6c3b3112a8468b66929c526a629, type: 3}
-  - {fileID: 8300000, guid: 31f50d8fa6bec704ebe27eabaa2dc78d, type: 3}
-  - {fileID: 8300000, guid: f2abc90e0e77f554bb681e8e535c32c1, type: 3}
-  - {fileID: 8300000, guid: 7e167d19eba766e4e831fd68dc2f0b93, type: 3}
-  - {fileID: 8300000, guid: 3efac2e4587259145ae0d52139339857, type: 3}
-  - {fileID: 8300000, guid: 8016e97630c5ca642b5e986a9793c164, type: 3}
-  - {fileID: 8300000, guid: b75b4bee90f8e1f4b9656a41b4b0a106, type: 3}
-  - {fileID: 8300000, guid: 1438c30a7636972419b336fc1f066499, type: 3}
-  - {fileID: 8300000, guid: 615135be7a447274188ccf28bb97f7fa, type: 3}
-  - {fileID: 8300000, guid: fe507067d96e4ae458c56fec0544e7cb, type: 3}
-  - {fileID: 8300000, guid: 726325d1b555c5841aee7457043ee3c0, type: 3}
   - {fileID: 8300000, guid: 29b0f4450db912646acefb8915181fe3, type: 3}
 --- !u!81 &326450447
 AudioListener:
@@ -1624,7 +1607,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Whimsics
+  m_text: Nie Whimsics
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f55ed3be7d31863438a8c51c07a0e656, type: 2}
   m_sharedMaterial: {fileID: 6539977606427265085, guid: f55ed3be7d31863438a8c51c07a0e656, type: 2}
