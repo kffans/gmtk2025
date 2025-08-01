@@ -5,23 +5,36 @@ using UnityEngine.InputSystem;
 public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private Camera playerCamera;
 
-    private Vector2 moveInput;
-    private Rigidbody2D rb;
+    public Rigidbody2D rb;
+    
+    private Vector2 moveDirection;
 
-    void Awake()
+    void Update()
     {
-        rb = GetComponent<Rigidbody2D>();
+        ProcessInputs();
     }
 
-    // Callback z Input System (w PlayerInput)
-    public void OnMove(InputAction.CallbackContext context)
+    void ProcessInputs()
     {
-        moveInput = context.ReadValue<Vector2>();
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveY = Input.GetAxisRaw("Vertical");
+
+        moveDirection = new Vector2(moveX, moveY);
+    }
+
+    void Move()
+    {
+        // player movement
+        rb.linearVelocity = new Vector2(moveDirection.x*moveSpeed, moveDirection.y*moveSpeed);
+
+        // camera movement
+        playerCamera.transform.position = new Vector3(transform.position.x, transform.position.y, playerCamera.transform.position.z);
     }
 
     void FixedUpdate()
     {
-        rb.MovePosition(rb.position + moveInput * moveSpeed * Time.fixedDeltaTime);
+        Move();
     }
 }
