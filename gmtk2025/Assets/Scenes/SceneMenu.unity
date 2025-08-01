@@ -211,7 +211,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: SceneMainLevel
+          m_StringArgument: SceneStartLevel
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &3603112
@@ -1886,7 +1886,6 @@ MonoBehaviour:
   menuCanvas: {fileID: 1470209208}
   optionsCanvas: {fileID: 2126089927}
   bg: {fileID: 1220782229}
-  cursorImage: {fileID: 2800000, guid: dab4e8568b2270f4cb79bc086bd8e6e5, type: 3}
 --- !u!1 &1630908212
 GameObject:
   m_ObjectHideFlags: 0

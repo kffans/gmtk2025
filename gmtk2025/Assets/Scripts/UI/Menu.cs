@@ -8,16 +8,9 @@ public class Menu : MonoBehaviour
     public GameObject? optionsCanvas;
 	#nullable disable
 	public GameObject bg;
-	public Texture2D cursorImage;
 	
 	void Start(){
 		AudioManager.instance.PlayMusic("menu");
-		//move background
-		LeanTween.moveX(bg, 200f, 5f).setLoopPingPong().setEase(LeanTweenType.easeOutQuad).setRepeat(-1);
-		//sets cursor image
-		Cursor.visible = true;
-		Cursor.lockState = CursorLockMode.None;
-		Cursor.SetCursor(cursorImage, new Vector2(20f,0f), CursorMode.ForceSoftware);
 	}
 	
     public void LoadLevel(string level)

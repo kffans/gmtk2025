@@ -8,12 +8,12 @@ public class Pause : MonoBehaviour
 	
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P) && !isPaused) {
+        if (Input.GetKeyDown(KeyCode.Escape) && !isPaused) {
 			pauseScreen.SetActive(true);
 			isPaused = true;
             Time.timeScale = 0f;
         }
-		else if (Input.GetKeyDown(KeyCode.P) && isPaused) {
+		else if (Input.GetKeyDown(KeyCode.Escape) && isPaused) {
 			pauseScreen.SetActive(false);
             optionsScreen.SetActive(false);
 			isPaused = false;
