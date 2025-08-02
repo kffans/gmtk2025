@@ -57,28 +57,18 @@ public class HairNodePickable : MonoBehaviour {
     }
     
     void Update() {
+        if (Input.GetKeyDown(KeyCode.N)){
+            SolveKnot();
+        }
+        
         if(!isInsideCollider) {
             isGoingDown = false;
-            if (Input.GetKey(KeyCode.Space)) { //if space held down
-                isGoingDown = true;
-                zUpDepth += zDepthChange;
-                zDepth = zUpDepth;
-            }
-            else {
-                isGoingDown = false;
-                zDownDepth -= zDepthChange;
-                zDepth = zDownDepth;
-            }
+            if (Input.GetKey(KeyCode.Space)) { isGoingDown = true;  zUpDepth   += zDepthChange; zDepth = zUpDepth; }
+            else                             { isGoingDown = false; zDownDepth -= zDepthChange; zDepth = zDownDepth; }
         }
         else {
-            if(isGoingDown){
-                zUpDepth += zDepthChange;
-                zDepth = zUpDepth;
-            }
-            else{
-                zDownDepth -= zDepthChange;
-                zDepth = zDownDepth;
-            }
+            if(isGoingDown) { zUpDepth   += zDepthChange; zDepth = zUpDepth; }
+            else            { zDownDepth -= zDepthChange; zDepth = zDownDepth; }
         }
         
         Vector2 worldPoint  = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -110,21 +100,21 @@ public class HairNodePickable : MonoBehaviour {
                     Vector2 normalizedPos = (normalizedDirection * nodeDistance) + v1;
 
                     secondPrevNode = firstPrevNode;
-                    Transform lastNode = GameObject.Find("HairNode_" + nodeLastNumber.ToString()).transform;
-                    lastNode.SetSiblingIndex(1);
+                    GameObject lastNode = GameObject.Find("HairNode_" + nodeLastNumber.ToString());
+                    //lastNode.name = "HairNode_"
+                    lastNode.transform.SetSiblingIndex(1);
                     nodeLastNumber--;
                     if(nodeLastNumber == 0) {
                         nodeLastNumber = nodeCount;
                     }
                     
-                    lastNode.position = new Vector3(normalizedPos.x, normalizedPos.y, zDepth);
-                    firstPrevNode = lastNode;
-                    // @TODO if found in beginning of queue, remove
-                    
+                    lastNode.transform.position = new Vector3(normalizedPos.x, normalizedPos.y, zDepth);
+                    firstPrevNode = lastNode.transform;
+
                     knottingOrder.RemoveAll(pair => pair.Item1 == nodeLastNumber);
                 }
                 Vector2 raycastVector = (normalizedDirection * (nodeDistance + 0.5f)/2.0f) + worldPoint;
-                Vector3 raycastVector3 = new Vector3(raycastVector.x, raycastVector.y, zDepth - 1.0f);
+                Vector3 raycastVector3 = new Vector3(raycastVector.x, raycastVector.y, 0.0f);
                 
                 RaycastHit hit;
                 if (Physics.Raycast(raycastVector3, Vector3.forward, out hit)){
@@ -143,11 +133,14 @@ public class HairNodePickable : MonoBehaviour {
                             
                             knottingOrder.Add(new Tuple<int, bool>(nodeHitIndex, isGoingUnder));
                             
-                            //string items = "";
-                            //foreach (Tuple<int, bool> item in knottingOrder){
-                                //items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
-                            //}
-                            //Debug.Log(items);
+                            
+                            
+                            
+                            string items = "";
+                            foreach (Tuple<int, bool> item in knottingOrder){
+                                items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
+                            }
+                            Debug.Log(items);
                         }
                     }
                 }
@@ -164,6 +157,30 @@ public class HairNodePickable : MonoBehaviour {
                 dragging = false;
             }
         }
+    }
+    
+    public static int SolveKnot() {
+        List<Tuple<int, bool>> knottingOrderTemp = new List<Tuple<int, bool>>();
+        
+        foreach (Tuple<int, bool> item in knottingOrder){
+            int index = GameObject.Find("HairNode_" + item.Item1.ToString()).transform.GetSiblingIndex();
+            knottingOrderTemp.Add(new Tuple<int, bool>(index, item.Item2));
+        } // ^ or you could just shift all the numbers by the current offset... whatever
+        
+        
+        // {(24,false), (97,true), (53, false)} -> {(1,false), (3,true), (2, false)}
+        var sort           = knottingOrderTemp.Select(t => t.Item1).Distinct().OrderBy(x => x).ToList();
+        var map            = sort.Select((val, index) => new { val, weight = index + 1 }).ToDictionary(x => x.val, x => x.weight);
+        var sortedKnotting = knottingOrderTemp.Select(t => Tuple.Create(map[t.Item1], t.Item2)).ToList();
+        
+        
+        string items = "";
+        foreach (Tuple<int, bool> item in sortedKnotting){
+            items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
+        }
+        Debug.Log(items);
+        
+        return 1;
     }
     
     public static float GetAngle(Vector2 vec1, Vector2 vec2, Vector2 vec3) {
