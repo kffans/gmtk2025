@@ -1,4 +1,7 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System;
+using System.Linq;
 
 public class HairNodePickable : MonoBehaviour {
     private bool dragging = false;
@@ -12,10 +15,17 @@ public class HairNodePickable : MonoBehaviour {
     public static float nodeDistance   = 10.0f;
     public static int   nodeCount      = 250;
     public static int   nodeLastNumber = nodeCount;
+    public static List<Tuple<int, bool>> knottingOrder = new List<Tuple<int, bool>>();
     
-    private float zDepth             = 500.0f;
-    public static float zDepthChange = 1f;
+    
+    private float zDepth     = 500.0f;
+    private float zUpDepth   = 500.0f;
+    private float zDownDepth = 500.0f;
+    
+    
+    public static float zDepthChange = 0.001f;
     private bool isInsideCollider = false;
+    private bool isGoingDown = false;
      
     
     void Awake() {
@@ -47,6 +57,30 @@ public class HairNodePickable : MonoBehaviour {
     }
     
     void Update() {
+        if(!isInsideCollider) {
+            isGoingDown = false;
+            if (Input.GetKey(KeyCode.Space)) { //if space held down
+                isGoingDown = true;
+                zUpDepth += zDepthChange;
+                zDepth = zUpDepth;
+            }
+            else {
+                isGoingDown = false;
+                zDownDepth -= zDepthChange;
+                zDepth = zDownDepth;
+            }
+        }
+        else {
+            if(isGoingDown){
+                zUpDepth += zDepthChange;
+                zDepth = zUpDepth;
+            }
+            else{
+                zDownDepth -= zDepthChange;
+                zDepth = zDownDepth;
+            }
+        }
+        
         Vector2 worldPoint  = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3 worldPoint3 = new Vector3(worldPoint.x, worldPoint.y, zDepth);
         
@@ -64,6 +98,7 @@ public class HairNodePickable : MonoBehaviour {
         else {
             dragging = false;
         }
+        
         
         if (dragging) {
             if(180.0f - threeWayAngle < angleThreshold){
@@ -83,21 +118,16 @@ public class HairNodePickable : MonoBehaviour {
                     }
                     
                     lastNode.position = new Vector3(normalizedPos.x, normalizedPos.y, zDepth);
-                    if (Input.GetKey(KeyCode.Space)) { //if control held down
-                        Debug.Log("Held down!");
-                        zDepth -= zDepthChange;
-                    }
-                    else {
-                        //zDepth -= zDepthChange;
-                    }
-                    //lastNode.position = new Vector3(normalizedPos.x, normalizedPos.y, 0.0f);
                     firstPrevNode = lastNode;
+                    // @TODO if found in beginning of queue, remove
+                    
+                    knottingOrder.RemoveAll(pair => pair.Item1 == nodeLastNumber);
                 }
                 Vector2 raycastVector = (normalizedDirection * (nodeDistance + 0.5f)/2.0f) + worldPoint;
                 Vector3 raycastVector3 = new Vector3(raycastVector.x, raycastVector.y, zDepth - 1.0f);
                 
                 RaycastHit hit;
-                if (Physics.Raycast(raycastVector3, Vector3.forward, out hit)){ 
+                if (Physics.Raycast(raycastVector3, Vector3.forward, out hit)){
                     if (hit.triangleIndex > 4) {
                         if (!isInsideCollider) {
                             isInsideCollider = true;
@@ -105,8 +135,19 @@ public class HairNodePickable : MonoBehaviour {
                             if (nodeHitIndex > nodeCount) {
                                 nodeHitIndex = nodeHitIndex - nodeCount;
                             }
-                            Debug.Log("Hit!   " + (nodeHitIndex) + "    " + hit.point);
-                            // @TODO add to array
+                            Debug.Log("Hit!   " + (nodeHitIndex) + "    " + hit.point.z + "    " + transform.position.z);
+                            bool isGoingUnder = false;
+                            if (transform.position.z > hit.point.z){
+                                isGoingUnder = true;
+                            }
+                            
+                            knottingOrder.Add(new Tuple<int, bool>(nodeHitIndex, isGoingUnder));
+                            
+                            //string items = "";
+                            //foreach (Tuple<int, bool> item in knottingOrder){
+                                //items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
+                            //}
+                            //Debug.Log(items);
                         }
                     }
                 }
@@ -116,6 +157,8 @@ public class HairNodePickable : MonoBehaviour {
                         Debug.Log("Out of hit");
                     }
                 }
+
+                
             }
             else {
                 dragging = false;
