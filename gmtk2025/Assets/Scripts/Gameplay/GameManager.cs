@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     private int currentLevelIndex;
 
     public enum PortalType { NEXT, BEFORE }
+    public GameObject gameOverUI;
 
     private void Awake()
     {
@@ -57,6 +58,35 @@ public class GameManager : MonoBehaviour
                 MoveBack();
                 break;
         }
+    }
+
+    public void StumbledOnEnemy()
+    {
+        Debug.Log("Zderzono się z przeciwnikiem");
+        Debug.Log($"{gameOverUI}");
+
+        if (gameOverUI != null)
+        {
+            gameOverUI.SetActive(true);
+            Time.timeScale = 0f; // Zatrzymaj grę
+        }
+        else
+        {
+            Debug.Log("dupa");
+         }
+    }
+
+    public void StartOver()
+    {
+        Time.timeScale = 1f;
+        DirectedGraph.Clear();
+        currentLevelIndex = 0;
+        
+        // Przeładuj scenę całkowicie od nowa
+        SceneManager.LoadScene("SceneStartLevel", LoadSceneMode.Single);
+        
+        // Usuń starą instancję przed załadowaniem nowej sceny
+        Destroy(gameObject);
     }
 
     private void MoveToNextLevel()
