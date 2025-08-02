@@ -1,36 +1,136 @@
 using UnityEngine;
 
-public class HairNodePickable : MonoBehaviour
-{
-    public enum DragState{
-		None,
-		Fresh,
-		ForceEnd
-	}
-	
-	public DragState dragState;
-	
-	void Start(){
-		dragState = DragState.None;
-	}
+public class HairNodePickable : MonoBehaviour {
+    private bool dragging = false;
+    private BoxCollider2D boxCollider2D;
+    public GameObject hairNodePrefab;
+    public MeshCollider lineRendererMeshCollider;
+    public LineRenderer lr;
+    private Transform firstPrevNode;
+    private Transform secondPrevNode;
+    public static float angleThreshold = 50.0f;
+    public static float nodeDistance   = 10.0f;
+    public static int   nodeCount      = 250;
+    public static int   nodeLastNumber = nodeCount;
+    
+    private float zDepth             = 500.0f;
+    public static float zDepthChange = 1f;
+    private bool isInsideCollider = false;
+     
+    
+    void Awake() {
+        boxCollider2D = this.GetComponent<BoxCollider2D>();
+        this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, zDepth);
+        
+        for (int i = 1; i <= nodeCount; i++) {            
+            GameObject hairNode = Instantiate(hairNodePrefab, this.transform.parent);
+            hairNode.name = "HairNode_" + i.ToString();
+            hairNode.transform.position = this.transform.position;
+        }
+        firstPrevNode = GameObject.Find("HairNode_1").transform;
+        secondPrevNode = GameObject.Find("HairNode_2").transform;
+        secondPrevNode.position += Vector3.left;
+    }
 
+    void FixedUpdate() {
+        Vector2 worldPoint  = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        
+        float threeWayAngle = GetAngle(secondPrevNode.position, firstPrevNode.position, worldPoint);
+        
+        if (dragging) {
+            if(180.0f - threeWayAngle < angleThreshold){
+                Mesh mesh = new Mesh();
+                lr.BakeMesh(mesh, true);
+                lineRendererMeshCollider.sharedMesh = mesh;
+            }
+        }
+    }
+    
     void Update() {
-        if (Input.GetMouseButtonDown(0)) {
-            Debug.Log("hit!");
-            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+        Vector2 worldPoint  = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 worldPoint3 = new Vector3(worldPoint.x, worldPoint.y, zDepth);
+        
+        float threeWayAngle = GetAngle(secondPrevNode.position, firstPrevNode.position, worldPoint);
+        float draggedNodeDistance  = Mathf.Sqrt(Mathf.Pow(firstPrevNode.position.x - worldPoint.x,2) + Mathf.Pow(firstPrevNode.position.y - worldPoint.y, 2));
+
+        if (Input.GetMouseButton(0)) {
+            RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero);
             if(hit.collider != null){
-                dragState = DragState.Fresh;
-                Debug.Log("hit?");
+                if (hit.collider == boxCollider2D) {
+                    dragging = true;
+                }
+            }
+        }
+        else {
+            dragging = false;
+        }
+        
+        if (dragging) {
+            if(180.0f - threeWayAngle < angleThreshold){
+                transform.position = worldPoint3;
+
+                Vector2 v1 = new Vector2(firstPrevNode.position.x, firstPrevNode.position.y);
+                Vector2 normalizedDirection = (worldPoint - v1).normalized;
+                if (draggedNodeDistance >= nodeDistance) {
+                    Vector2 normalizedPos = (normalizedDirection * nodeDistance) + v1;
+
+                    secondPrevNode = firstPrevNode;
+                    Transform lastNode = GameObject.Find("HairNode_" + nodeLastNumber.ToString()).transform;
+                    lastNode.SetSiblingIndex(1);
+                    nodeLastNumber--;
+                    if(nodeLastNumber == 0) {
+                        nodeLastNumber = nodeCount;
+                    }
+                    
+                    lastNode.position = new Vector3(normalizedPos.x, normalizedPos.y, zDepth);
+                    if (Input.GetKey(KeyCode.Space)) { //if control held down
+                        Debug.Log("Held down!");
+                        zDepth -= zDepthChange;
+                    }
+                    else {
+                        //zDepth -= zDepthChange;
+                    }
+                    //lastNode.position = new Vector3(normalizedPos.x, normalizedPos.y, 0.0f);
+                    firstPrevNode = lastNode;
+                }
+                Vector2 raycastVector = (normalizedDirection * (nodeDistance + 0.5f)/2.0f) + worldPoint;
+                Vector3 raycastVector3 = new Vector3(raycastVector.x, raycastVector.y, zDepth - 1.0f);
+                
+                RaycastHit hit;
+                if (Physics.Raycast(raycastVector3, Vector3.forward, out hit)){ 
+                    if (hit.triangleIndex > 4) {
+                        if (!isInsideCollider) {
+                            isInsideCollider = true;
+                            int nodeHitIndex = nodeLastNumber + (hit.triangleIndex / 2);
+                            if (nodeHitIndex > nodeCount) {
+                                nodeHitIndex = nodeHitIndex - nodeCount;
+                            }
+                            Debug.Log("Hit!   " + (nodeHitIndex) + "    " + hit.point);
+                            // @TODO add to array
+                        }
+                    }
+                }
+                else {
+                    if (isInsideCollider) {
+                        isInsideCollider = false;
+                        Debug.Log("Out of hit");
+                    }
+                }
             }
             else {
-                dragState = DragState.None;
+                dragging = false;
             }
         }
-        //AudioManager.instance.PlaySFX("button_click");
-        if(dragState == DragState.Fresh){
-            //hand.gameObject.SetActive(true);
-            this.transform.position = new Vector3(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"), 0);
+    }
+    
+    public static float GetAngle(Vector2 vec1, Vector2 vec2, Vector2 vec3) {
+        float lengthA = Mathf.Sqrt(Mathf.Pow(vec2.x - vec1.x,2) + Mathf.Pow(vec2.y - vec1.y, 2));
+        float lengthB = Mathf.Sqrt(Mathf.Pow(vec3.x - vec2.x,2) + Mathf.Pow(vec3.y - vec2.y, 2));
+        float lengthC = Mathf.Sqrt(Mathf.Pow(vec3.x - vec1.x,2) + Mathf.Pow(vec3.y - vec1.y, 2));
 
-        }
+        float calc = ((lengthA * lengthA) + (lengthB * lengthB) - (lengthC * lengthC)) / (2 * lengthA * lengthB);
+
+        return Mathf.Acos(calc) * Mathf.Rad2Deg;
+
     }
 }
