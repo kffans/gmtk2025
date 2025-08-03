@@ -14751,6 +14751,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53769f10b89b386479d34c8e1b664e34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainCamera: {fileID: 0}
+  gameCanvas: {fileID: 0}
+  hairAll: {fileID: 1698230714438725178, guid: e0f8e2ec59977954ca4d36c67b1ce85d, type: 3}
+  inKnottingView: 0
   gameOverUI: {fileID: 1602478690}
 --- !u!224 &1891197627 stripped
 RectTransform:

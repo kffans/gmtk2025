@@ -5,7 +5,7 @@ using System.Linq;
 
 public class HairNodePickable : MonoBehaviour {
     private bool dragging = false;
-    private BoxCollider2D boxCollider2D;
+    private CircleCollider2D circleCollider2D;
     public GameObject hairNodePrefab;
     public MeshCollider lineRendererMeshCollider;
     public LineRenderer lr;
@@ -16,11 +16,12 @@ public class HairNodePickable : MonoBehaviour {
     public static int   nodeCount      = 250;
     public static int   nodeLastNumber = nodeCount;
     public static List<Tuple<int, bool>> knottingOrder = new List<Tuple<int, bool>>();
+    public Camera camera;
     
     
-    private float zDepth     = 500.0f;
+    private float zDepth     = 489.31f;
     private float zUpDepth   = 500.0f;
-    private float zDownDepth = 500.0f;
+    private float zDownDepth = 489.31f;
     
     
     public static float zDepthChange = 0.001f;
@@ -29,8 +30,10 @@ public class HairNodePickable : MonoBehaviour {
      
     
     void Awake() {
-        boxCollider2D = this.GetComponent<BoxCollider2D>();
-        this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, zDepth);
+        circleCollider2D = this.GetComponent<CircleCollider2D>();
+        firstPrevNode = this.transform.parent.transform.GetChild(1);
+        secondPrevNode = this.transform.parent.transform.GetChild(2);
+        /*this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, zDepth);
         
         for (int i = 1; i <= nodeCount; i++) {            
             GameObject hairNode = Instantiate(hairNodePrefab, this.transform.parent);
@@ -39,11 +42,11 @@ public class HairNodePickable : MonoBehaviour {
         }
         firstPrevNode = GameObject.Find("HairNode_1").transform;
         secondPrevNode = GameObject.Find("HairNode_2").transform;
-        secondPrevNode.position += Vector3.left;
+        secondPrevNode.position += Vector3.left;*/
     }
 
     void FixedUpdate() {
-        Vector2 worldPoint  = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 worldPoint  = camera.ScreenToWorldPoint(Input.mousePosition);
         
         float threeWayAngle = GetAngle(secondPrevNode.position, firstPrevNode.position, worldPoint);
         
@@ -57,9 +60,6 @@ public class HairNodePickable : MonoBehaviour {
     }
     
     void Update() {
-        if (Input.GetKeyDown(KeyCode.N)){
-            SolveKnot();
-        }
         if (Input.GetKeyDown(KeyCode.Q)){
             Tuple<int, bool, bool> knotResult = SolveKnot();
             GameObject gameManagerObj = GameObject.Find("GameManager");
@@ -77,14 +77,14 @@ public class HairNodePickable : MonoBehaviour {
                     if     (knotResult.Item1 == 3){ // electricity
                         effect = GameManager.Effect.Electricity;
                     }
-                    else if(knotResult.Item1 == 4){ // fire
-                        effect = GameManager.Effect.Fire;
+                    else if(knotResult.Item1 == 4){ // ice
+                        effect = GameManager.Effect.Ice;
                     }
                     else if(knotResult.Item1 == 5){ // speed
                         effect = GameManager.Effect.Speed;
                     }
-                    else if(knotResult.Item1 == 6){ // ice
-                        effect = GameManager.Effect.Ice;
+                    else if(knotResult.Item1 == 6){ // fire
+                        effect = GameManager.Effect.Fire;
                     }
                     else if(knotResult.Item1 >= 7){ // invisibility
                         effect = GameManager.Effect.Invisibility;
@@ -93,6 +93,13 @@ public class HairNodePickable : MonoBehaviour {
                     GameManager.instance.knotInventory[indexKey] = new Tuple<GameManager.Effect, bool, bool>(effect, knotResult.Item2, knotResult.Item3);
                     
                 }
+
+                
+                GameManager.instance.mainCamera.SetActive(true);
+                GameManager.instance.gameCanvas.SetActive(true);
+                GameManager.instance.inKnottingView = false;
+                Destroy(GameObject.Find("hair"), 0.0f); // @TODO drugi argument to czas znieszczenia
+                
             }
         }
         
@@ -115,7 +122,7 @@ public class HairNodePickable : MonoBehaviour {
         if (Input.GetMouseButton(0)) {
             RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero);
             if(hit.collider != null){
-                if (hit.collider == boxCollider2D) {
+                if (hit.collider == circleCollider2D) {
                     dragging = true;
                 }
             }

@@ -11,15 +11,19 @@ public class GameManager : MonoBehaviour
     public enum Effect {
         None,
         Electricity,
-        Fire,
-        Speed,
         Ice,
+        Speed,
+        Fire,
         Invisibility
     }
     
     
-    
     public Dictionary<int, Tuple<GameManager.Effect, bool, bool>> knotInventory = new Dictionary<int, Tuple<GameManager.Effect, bool, bool>>();
+    
+    public GameObject mainCamera = null;
+    public GameObject gameCanvas = null;
+    public GameObject hairAll;
+    public bool inKnottingView = false;
 
     // Słownik poziomów: nazwa sceny -> indeks
     public Dictionary<string, int> Levels = new Dictionary<string, int>()
@@ -58,6 +62,27 @@ public class GameManager : MonoBehaviour
         if (SceneManager.GetActiveScene().name == "SceneStartLevel")
         {
             AudioManager.instance?.PlayMusic("game");
+        }
+    }
+    
+    void Update() {
+        string sceneName = SceneManager.GetActiveScene().name;
+        if (SceneManager.GetActiveScene().name != "SceneMenu")
+        {
+            if(Input.GetKeyDown(KeyCode.Q) && !inKnottingView){ // kod do przechodzenia na węzłowanie
+                if(GameManager.instance.knotInventory.Count < 5){
+                    inKnottingView = true;
+                    if(mainCamera == null){ mainCamera = GameObject.Find("Main Camera"); }
+                    if(gameCanvas == null){ gameCanvas = GameObject.Find("GameCanvas"); }
+                    mainCamera.SetActive(false);
+                    gameCanvas.SetActive(false);
+                    GameObject hair = Instantiate(hairAll);
+                    hair.name = "hair";
+                }
+                else{
+                     // @TODO knot limit reached   
+                }
+            }
         }
     }
 
