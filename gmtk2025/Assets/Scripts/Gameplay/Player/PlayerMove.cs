@@ -15,11 +15,14 @@ public class PlayerMove : MonoBehaviour
     
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 15f;
-    [SerializeField] private float rotationOffset = -90f; // Domyślnie dla sprite'ów skierowanych w górę
+    [SerializeField] private float rotationOffset = -90f;
+    [SerializeField] private Animator _animator;
 
     private Rigidbody2D rb;
     private Vector2 moveDirection;
-    private Vector2 mouseWorldPosition;
+    private Vector2 lastNonZeroDirection = Vector2.up; // Domyślnie w górę
+    
+    private bool upPressed, downPressed, leftPressed, rightPressed;
 
     [SerializeField] private float footstepInterval = 0.4f;
     private float footstepTimer;
@@ -39,58 +42,85 @@ public class PlayerMove : MonoBehaviour
     void Update()
     {
         ProcessInputs();
-        CalculateMousePosition();
+        UpdateAnimations();
         HandleFootstepSounds();
     }
 
     void FixedUpdate()
     {
         MovePlayer();
-        RotateTowardsMouse();
     }
 
     void ProcessInputs()
     {
-        float moveX = Input.GetAxisRaw("Horizontal");
-        float moveY = Input.GetAxisRaw("Vertical");
+        upPressed = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow);
+        downPressed = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
+        leftPressed = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow);
+        rightPressed = Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow);
+
+        float moveX = 0f;
+        float moveY = 0f;
+
+        if (upPressed) moveY += 1f;
+        if (downPressed) moveY -= 1f;
+        if (leftPressed) moveX -= 1f;
+        if (rightPressed) moveX += 1f;
+
         moveDirection = new Vector2(moveX, moveY).normalized;
-    }
 
-    void CalculateMousePosition()
-    {
-        // gówno
-        Vector3 mousePos = Input.mousePosition;
-        mousePos.z = -playerCamera.transform.position.z; 
-        mouseWorldPosition = playerCamera.ScreenToWorldPoint(mousePos);
-    }
-
-    void RotateTowardsMouse()
-    {
-        Vector2 lookDirection = mouseWorldPosition - rb.position;
-        
-        if (lookDirection.sqrMagnitude > 0.01f) // Unikamy obrotu gdy mysz jest blisko środka
+        if (moveDirection != Vector2.zero)
         {
-            float targetAngle = Mathf.Atan2(lookDirection.y, lookDirection.x) * Mathf.Rad2Deg + rotationOffset;
-            float currentAngle = rb.rotation;
-            float newAngle = Mathf.LerpAngle(currentAngle, targetAngle, rotationSpeed * Time.fixedDeltaTime);
-            
-            rb.MoveRotation(newAngle); // Lepsze dla fizyki niż bezpośrednie ustawianie rotation
+            lastNonZeroDirection = moveDirection;
         }
+    }
+
+    void UpdateAnimations()
+    {
+        // Resetuj wszystkie parametry animacji
+        ResetAllAnimationParameters();
+
+        if (moveDirection == Vector2.zero)
+        {
+            return;
+        }
+
+        if (upPressed)
+        {
+            _animator.SetBool("isWalkingUp", true);
+        }
+        else if (downPressed)
+        {
+            _animator.SetBool("isWalkingDown", true);
+        }
+        else if (leftPressed)
+        {
+            _animator.SetBool("isWalkingLeft", true);
+        }
+        else if (rightPressed)
+        {
+            _animator.SetBool("isWalkingRight", true);
+        }
+    }
+
+    void ResetAllAnimationParameters()
+    {
+        _animator.SetBool("isWalkingUp", false);
+        _animator.SetBool("isWalkingDown", false);
+        _animator.SetBool("isWalkingLeft", false);
+        _animator.SetBool("isWalkingRight", false);
     }
 
     void MovePlayer()
     {
-        // Ruch postaci
         rb.linearVelocity = moveDirection * moveSpeed;
 
         // Kamera podążająca
-        if(playerCamera != null)
+        if (playerCamera != null)
         {
             Vector3 desiredPosition = transform.position + cameraOffset;
             Vector3 smoothedPosition = Vector3.Lerp(playerCamera.transform.position, desiredPosition, cameraSmoothSpeed);
             playerCamera.transform.position = smoothedPosition;
         }
-
     }
 
     void HandleFootstepSounds()
@@ -109,7 +139,7 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            footstepTimer = footstepInterval; // Reset timer when not moving
+            footstepTimer = footstepInterval;
         }
 
         wasMoving = isMoving;

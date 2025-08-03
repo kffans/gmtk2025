@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 90bafb494fd355641bbcfb3c20b4bee7
+guid: 666ea96d52f197c44b556d6bbd38b3bb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4334783836991956000
-    second: player_0
+      213: -8904575027685297075
+    second: kaltka0003_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_0
+      name: kaltka0003_0
       rect:
         serializedVersion: 2
-        x: 81
-        y: 0
+        x: 109
+        y: 68
         width: 105
-        height: 256
+        height: 262
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 024a20edeee382c30800000000000000
-      internalID: 4334783836991956000
+      spriteID: d44f007d0389c6480800000000000000
+      internalID: -8904575027685297075
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player_0: 4334783836991956000
+      kaltka0003_0: -8904575027685297075
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
