@@ -81,7 +81,6 @@ public class HairNodePickable : MonoBehaviour {
                 GameManager.instance.gameCanvas.SetActive(true);
                 GameManager.instance.inKnottingView = false;
                 Cursor.visible = true;
-                GameManager.instance.spellHand.SetActive(true);
                 Destroy(GameObject.Find("hair"));
             }
             else{
