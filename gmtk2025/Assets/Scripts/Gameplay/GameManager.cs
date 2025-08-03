@@ -41,6 +41,11 @@ public class GameManager : MonoBehaviour
 
     public enum PortalType { NEXT, BEFORE }
     public GameObject gameOverUI;
+    public GameObject spellHand;
+    
+    
+    
+    
 
     private void Awake()
     {
@@ -77,6 +82,8 @@ public class GameManager : MonoBehaviour
                     if(gameCanvas == null){ gameCanvas = GameObject.Find("GameCanvas"); }
                     mainCamera.SetActive(false);
                     gameCanvas.SetActive(false);
+                    gameOverUI.SetActive(false);
+                    spellHand.SetActive(false);
                     GameObject hair = Instantiate(hairAll);
                     hair.name = "hair";
                 }
@@ -84,6 +91,11 @@ public class GameManager : MonoBehaviour
                      // @TODO knot limit reached   
                 }
             }
+        }
+        else {
+            gameOverUI.SetActive(false);
+            spellHand.SetActive(false);
+            //spellHand.SetActive(false);
         }
     }
 
@@ -108,6 +120,7 @@ public class GameManager : MonoBehaviour
         if (gameOverUI != null)
         {
             gameOverUI.SetActive(true);
+            spellHand.SetActive(false);
             Time.timeScale = 0f; // Zatrzymaj grę
         }
         else
@@ -121,7 +134,8 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         DirectedGraph.Clear();
         currentLevelIndex = 0;
-        
+        gameOverUI.SetActive(false);
+        spellHand.SetActive(true);
         SceneManager.LoadScene("SceneStartLevel", LoadSceneMode.Single);
         
         // Usuń starą instancję przed załadowaniem nowej sceny
