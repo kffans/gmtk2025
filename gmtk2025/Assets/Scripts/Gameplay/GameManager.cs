@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(GameObject.Find("UICanvas"));
         }
         else
         {
