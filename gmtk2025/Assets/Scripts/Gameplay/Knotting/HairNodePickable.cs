@@ -17,6 +17,12 @@ public class HairNodePickable : MonoBehaviour {
     public static int   nodeLastNumber = nodeCount;
     public static List<Tuple<int, bool>> knottingOrder = new List<Tuple<int, bool>>();
     public Camera camera;
+    public GameObject handPointing;
+    public GameObject handGrabbingLower;
+    public GameObject handGrabbingUpper;
+    public GameObject currentHand;
+    
+    public GameObject leftHand;
     
     
     private float zDepth     = 489.31f;
@@ -27,9 +33,15 @@ public class HairNodePickable : MonoBehaviour {
     public static float zDepthChange = 0.001f;
     private bool isInsideCollider = false;
     private bool isGoingDown = false;
+    
+    private bool isKnotDone = false;
+    private float finishingTime = 1.8f;
+    private float currentFinishTime = 0.0f;
      
     
     void Awake() {
+        Cursor.visible = false;
+        currentHand = handPointing;
         circleCollider2D = this.GetComponent<CircleCollider2D>();
         firstPrevNode = this.transform.parent.transform.GetChild(1);
         secondPrevNode = this.transform.parent.transform.GetChild(2);
@@ -60,143 +72,182 @@ public class HairNodePickable : MonoBehaviour {
     }
     
     void Update() {
-        if (Input.GetKeyDown(KeyCode.Q)){
-            Tuple<int, bool, bool> knotResult = SolveKnot();
-            GameObject gameManagerObj = GameObject.Find("GameManager");
-            if (gameManagerObj != null) {
-                if(GameManager.instance.knotInventory.Count < 5){
-                    int indexKey = 0;
-                    for(int i = 0; i < 5; i++){
-                        if(!GameManager.instance.knotInventory.ContainsKey(i)){
-                            indexKey = i;
-                            break;
-                        }
-                    }
-                    
-                    GameManager.Effect effect = GameManager.Effect.None;
-                    if     (knotResult.Item1 == 3){ // electricity
-                        effect = GameManager.Effect.Electricity;
-                    }
-                    else if(knotResult.Item1 == 4){ // ice
-                        effect = GameManager.Effect.Ice;
-                    }
-                    else if(knotResult.Item1 == 5){ // speed
-                        effect = GameManager.Effect.Speed;
-                    }
-                    else if(knotResult.Item1 == 6){ // fire
-                        effect = GameManager.Effect.Fire;
-                    }
-                    else if(knotResult.Item1 >= 7){ // invisibility
-                        effect = GameManager.Effect.Invisibility;
-                        
-                    }
-                    GameManager.instance.knotInventory[indexKey] = new Tuple<GameManager.Effect, bool, bool>(effect, knotResult.Item2, knotResult.Item3);
-                    
-                }
-
-                
-                GameManager.instance.mainCamera.SetActive(true);
-                GameManager.instance.gameCanvas.SetActive(true);
-                GameManager.instance.inKnottingView = false;
-                Destroy(GameObject.Find("hair"), 0.0f); // @TODO drugi argument to czas znieszczenia
-                
-            }
-        }
-        
-        if(!isInsideCollider) {
-            isGoingDown = false;
-            if (Input.GetKey(KeyCode.Space)) { isGoingDown = true;  zUpDepth   += zDepthChange; zDepth = zUpDepth; }
-            else                             { isGoingDown = false; zDownDepth -= zDepthChange; zDepth = zDownDepth; }
-        }
-        else {
-            if(isGoingDown) { zUpDepth   += zDepthChange; zDepth = zUpDepth; }
-            else            { zDownDepth -= zDepthChange; zDepth = zDownDepth; }
-        }
-        
         Vector2 worldPoint  = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3 worldPoint3 = new Vector3(worldPoint.x, worldPoint.y, zDepth);
         
-        float threeWayAngle = GetAngle(secondPrevNode.position, firstPrevNode.position, worldPoint);
-        float draggedNodeDistance  = Mathf.Sqrt(Mathf.Pow(firstPrevNode.position.x - worldPoint.x,2) + Mathf.Pow(firstPrevNode.position.y - worldPoint.y, 2));
-
-        if (Input.GetMouseButton(0)) {
-            RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero);
-            if(hit.collider != null){
-                if (hit.collider == circleCollider2D) {
-                    dragging = true;
-                }
+        if(isKnotDone) {
+            if(currentFinishTime > finishingTime){
+                GameManager.instance.mainCamera.SetActive(true);
+                GameManager.instance.gameCanvas.SetActive(true);
+                GameManager.instance.inKnottingView = false;
+                Cursor.visible = true;
+                Destroy(GameObject.Find("hair"));
+            }
+            else{
+                currentFinishTime += Time.deltaTime;
             }
         }
-        else {
-            dragging = false;
-        }
         
         
-        if (dragging) {
-            if(180.0f - threeWayAngle < angleThreshold){
-                transform.position = worldPoint3;
+        if(!isKnotDone){
+            if (Input.GetKeyDown(KeyCode.Q)){
+                isKnotDone = true;
+                Tuple<int, bool, bool> knotResult = SolveKnot();
 
-                Vector2 v1 = new Vector2(firstPrevNode.position.x, firstPrevNode.position.y);
-                Vector2 normalizedDirection = (worldPoint - v1).normalized;
-                if (draggedNodeDistance >= nodeDistance) {
-                    Vector2 normalizedPos = (normalizedDirection * nodeDistance) + v1;
-
-                    secondPrevNode = firstPrevNode;
-                    GameObject lastNode = GameObject.Find("HairNode_" + nodeLastNumber.ToString());
-                    //lastNode.name = "HairNode_"
-                    lastNode.transform.SetSiblingIndex(1);
-                    nodeLastNumber--;
-                    if(nodeLastNumber == 0) {
-                        nodeLastNumber = nodeCount;
+                int indexKey = 0;
+                for(int i = 0; i < 5; i++){
+                    if(!GameManager.instance.knotInventory.ContainsKey(i)){
+                        indexKey = i;
+                        break;
                     }
+                }
+                
+                GameManager.Effect effect = GameManager.Effect.None;
+                if     (knotResult.Item1 == 3){ // electricity
+                    effect = GameManager.Effect.Electricity;
+                }
+                else if(knotResult.Item1 == 4){ // ice
+                    effect = GameManager.Effect.Ice;
+                }
+                else if(knotResult.Item1 == 5){ // speed
+                    effect = GameManager.Effect.Speed;
+                }
+                else if(knotResult.Item1 == 6){ // fire
+                    effect = GameManager.Effect.Fire;
+                }
+                else if(knotResult.Item1 >= 7){ // invisibility
+                    effect = GameManager.Effect.Invisibility;
                     
-                    lastNode.transform.position = new Vector3(normalizedPos.x, normalizedPos.y, zDepth);
-                    firstPrevNode = lastNode.transform;
-
-                    knottingOrder.RemoveAll(pair => pair.Item1 == nodeLastNumber);
                 }
-                Vector2 raycastVector = (normalizedDirection * (nodeDistance + 0.5f)/2.0f) + worldPoint;
-                Vector3 raycastVector3 = new Vector3(raycastVector.x, raycastVector.y, 0.0f);
+                GameManager.instance.knotInventory[indexKey] = new Tuple<GameManager.Effect, bool, bool>(effect, knotResult.Item2, knotResult.Item3);
+                //GameObject.Find("HairNode_" + nodeLastNumber.ToString()).transform.position
+                Vector3 dest = GameObject.Find("HairNode_" + nodeLastNumber.ToString()).transform.position;
+                dest = new Vector3(dest.x, dest.y, 0.0f);
+                LeanTween.move(leftHand, dest, 1.7f).setEase(LeanTweenType.easeOutQuart);
                 
-                RaycastHit hit;
-                if (Physics.Raycast(raycastVector3, Vector3.forward, out hit)){
-                    if (hit.triangleIndex > 4) {
-                        if (!isInsideCollider) {
-                            isInsideCollider = true;
-                            int nodeHitIndex = nodeLastNumber + (hit.triangleIndex / 2);
-                            if (nodeHitIndex > nodeCount) {
-                                nodeHitIndex = nodeHitIndex - nodeCount;
-                            }
-                            Debug.Log("Hit!   " + (nodeHitIndex) + "    " + hit.point.z + "    " + transform.position.z);
-                            bool isGoingUnder = false;
-                            if (transform.position.z > hit.point.z){
-                                isGoingUnder = true;
-                            }
-                            
-                            knottingOrder.Add(new Tuple<int, bool>(nodeHitIndex, isGoingUnder));
-                            
-                            
-                            
-                            
-                            string items = "";
-                            foreach (Tuple<int, bool> item in knottingOrder){
-                                items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
-                            }
-                            Debug.Log(items);
-                        }
+                return;
+                
+            }
+            
+            
+            if(!Input.GetMouseButton(0)){
+                currentHand = handPointing;
+                handPointing.SetActive(true);
+                handGrabbingLower.SetActive(false);
+                handGrabbingUpper.SetActive(false);
+            }
+            else{
+                if(Input.GetKey(KeyCode.Space)){
+                    currentHand = handGrabbingLower;
+                    handPointing.SetActive(false);
+                    handGrabbingLower.SetActive(true);
+                    handGrabbingUpper.SetActive(false);
+                }
+                else{
+                    currentHand = handGrabbingUpper;
+                    handPointing.SetActive(false);
+                    handGrabbingLower.SetActive(false);
+                    handGrabbingUpper.SetActive(true);
+                }
+            }
+            currentHand.transform.position = new Vector3(worldPoint.x, worldPoint.y, 0.0f);
+
+            
+            
+            if(!isInsideCollider) {
+                isGoingDown = false;
+                if (Input.GetKey(KeyCode.Space)) { isGoingDown = true;  zUpDepth   += zDepthChange; zDepth = zUpDepth; }
+                else                             { isGoingDown = false; zDownDepth -= zDepthChange; zDepth = zDownDepth; }
+            }
+            else {
+                if(isGoingDown) { zUpDepth   += zDepthChange; zDepth = zUpDepth; }
+                else            { zDownDepth -= zDepthChange; zDepth = zDownDepth; }
+            }
+            
+
+            
+            float threeWayAngle = GetAngle(secondPrevNode.position, firstPrevNode.position, worldPoint);
+            float draggedNodeDistance  = Mathf.Sqrt(Mathf.Pow(firstPrevNode.position.x - worldPoint.x,2) + Mathf.Pow(firstPrevNode.position.y - worldPoint.y, 2));
+
+            if (Input.GetMouseButton(0)) {
+                RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero);
+                if(hit.collider != null){
+                    if (hit.collider == circleCollider2D) {
+                        dragging = true;
                     }
                 }
-                else {
-                    if (isInsideCollider) {
-                        isInsideCollider = false;
-                        Debug.Log("Out of hit");
-                    }
-                }
-
-                
             }
             else {
                 dragging = false;
+            }
+            
+            
+            if (dragging) {
+                if(180.0f - threeWayAngle < angleThreshold){
+                    transform.position = worldPoint3;
+
+                    Vector2 v1 = new Vector2(firstPrevNode.position.x, firstPrevNode.position.y);
+                    Vector2 normalizedDirection = (worldPoint - v1).normalized;
+                    if (draggedNodeDistance >= nodeDistance) {
+                        Vector2 normalizedPos = (normalizedDirection * nodeDistance) + v1;
+
+                        secondPrevNode = firstPrevNode;
+                        GameObject lastNode = GameObject.Find("HairNode_" + nodeLastNumber.ToString());
+                        //lastNode.name = "HairNode_"
+                        lastNode.transform.SetSiblingIndex(1);
+                        nodeLastNumber--;
+                        if(nodeLastNumber == 0) {
+                            nodeLastNumber = nodeCount;
+                        }
+                        
+                        lastNode.transform.position = new Vector3(normalizedPos.x, normalizedPos.y, zDepth);
+                        firstPrevNode = lastNode.transform;
+
+                        knottingOrder.RemoveAll(pair => pair.Item1 == nodeLastNumber);
+                    }
+                    Vector2 raycastVector = (normalizedDirection * (nodeDistance + 0.5f)/2.0f) + worldPoint;
+                    Vector3 raycastVector3 = new Vector3(raycastVector.x, raycastVector.y, 0.0f);
+                    
+                    RaycastHit hit;
+                    if (Physics.Raycast(raycastVector3, Vector3.forward, out hit)){
+                        if (hit.triangleIndex > 4) {
+                            if (!isInsideCollider) {
+                                isInsideCollider = true;
+                                int nodeHitIndex = nodeLastNumber + (hit.triangleIndex / 2);
+                                if (nodeHitIndex > nodeCount) {
+                                    nodeHitIndex = nodeHitIndex - nodeCount;
+                                }
+                                Debug.Log("Hit!   " + (nodeHitIndex) + "    " + hit.point.z + "    " + transform.position.z);
+                                bool isGoingUnder = false;
+                                if (transform.position.z > hit.point.z){
+                                    isGoingUnder = true;
+                                }
+                                
+                                knottingOrder.Add(new Tuple<int, bool>(nodeHitIndex, isGoingUnder));
+                                
+                                
+                                
+                                
+                                string items = "";
+                                foreach (Tuple<int, bool> item in knottingOrder){
+                                    items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
+                                }
+                                Debug.Log(items);
+                            }
+                        }
+                    }
+                    else {
+                        if (isInsideCollider) {
+                            isInsideCollider = false;
+                            Debug.Log("Out of hit");
+                        }
+                    }
+
+                    
+                }
+                else {
+                    dragging = false;
+                }
             }
         }
     }
