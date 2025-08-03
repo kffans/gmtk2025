@@ -60,6 +60,41 @@ public class HairNodePickable : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.N)){
             SolveKnot();
         }
+        if (Input.GetKeyDown(KeyCode.Q)){
+            Tuple<int, bool, bool> knotResult = SolveKnot();
+            GameObject gameManagerObj = GameObject.Find("GameManager");
+            if (gameManagerObj != null) {
+                if(GameManager.instance.knotInventory.Count < 5){
+                    int indexKey = 0;
+                    for(int i = 0; i < 5; i++){
+                        if(!GameManager.instance.knotInventory.ContainsKey(i)){
+                            indexKey = i;
+                            break;
+                        }
+                    }
+                    
+                    GameManager.Effect effect = GameManager.Effect.None;
+                    if     (knotResult.Item1 == 3){ // electricity
+                        effect = GameManager.Effect.Electricity;
+                    }
+                    else if(knotResult.Item1 == 4){ // fire
+                        effect = GameManager.Effect.Fire;
+                    }
+                    else if(knotResult.Item1 == 5){ // speed
+                        effect = GameManager.Effect.Speed;
+                    }
+                    else if(knotResult.Item1 == 6){ // ice
+                        effect = GameManager.Effect.Ice;
+                    }
+                    else if(knotResult.Item1 >= 7){ // invisibility
+                        effect = GameManager.Effect.Invisibility;
+                        
+                    }
+                    GameManager.instance.knotInventory[indexKey] = new Tuple<GameManager.Effect, bool, bool>(effect, knotResult.Item2, knotResult.Item3);
+                    
+                }
+            }
+        }
         
         if(!isInsideCollider) {
             isGoingDown = false;
@@ -159,8 +194,12 @@ public class HairNodePickable : MonoBehaviour {
         }
     }
     
-    public static int SolveKnot() {
+    public static Tuple<int, bool, bool> SolveKnot() {
         List<Tuple<int, bool>> knottingOrderTemp = new List<Tuple<int, bool>>();
+        int knotCrossingCount = 1;
+        bool isImpure = false;
+        bool isOrdered = true;
+        
         
         foreach (Tuple<int, bool> item in knottingOrder){
             int index = GameObject.Find("HairNode_" + item.Item1.ToString()).transform.GetSiblingIndex();
@@ -173,14 +212,96 @@ public class HairNodePickable : MonoBehaviour {
         var map            = sort.Select((val, index) => new { val, weight = index + 1 }).ToDictionary(x => x.val, x => x.weight);
         var sortedKnotting = knottingOrderTemp.Select(t => Tuple.Create(map[t.Item1], t.Item2)).ToList();
         
+        int crossCount = sortedKnotting.Count;
+        if(crossCount >= 1){
+            
+            
+            do{
+                crossCount = sortedKnotting.Count;
+                for (int i = 0; i < sortedKnotting.Count - 1; i++){
+                    if(Math.Abs(sortedKnotting[i].Item1 - sortedKnotting[i + 1].Item1) == 1 && sortedKnotting[i].Item2 == sortedKnotting[i + 1].Item2){
+                        sortedKnotting.RemoveAt(i + 1);
+                        sortedKnotting.RemoveAt(i);
+                    }
+                }
+            } while(crossCount != sortedKnotting.Count);
+            
+            // check if loose at beginning
+            // if at the beginning it increases each by one, or is lower than next
+            crossCount = sortedKnotting.Count;
+            if(crossCount >= 1){
+                while(true){
+                    crossCount = sortedKnotting.Count;
+                    if(crossCount >= 2){
+                        if(sortedKnotting[1].Item1 - sortedKnotting[0].Item1 == 1){
+                            sortedKnotting.RemoveAt(1);
+                            sortedKnotting.RemoveAt(0);
+                        }
+                        else if(sortedKnotting[1].Item1 > sortedKnotting[0].Item1) {
+                            sortedKnotting.RemoveAt(0);
+                        }
+                        else{
+                            break;
+                        }
+                    }
+                    else{
+                        break;
+                    }
+                }
+            }
+            
+            
+            
+            // check if numbers are bigger than the first
+            crossCount = sortedKnotting.Count;
+            if(crossCount >= 1){
+                int firstCrossingNumber = sortedKnotting[0].Item1;
+                for (int i = 1; i < sortedKnotting.Count; i++){
+                    if(sortedKnotting[i].Item1 > firstCrossingNumber){
+                        sortedKnotting.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+            
+            // if increasing, czeck if theres at least one decreasing pair before
+            crossCount = sortedKnotting.Count;
+            if(crossCount >= 1){
+                int firstCrossingNumber = sortedKnotting[0].Item1;
+            }
+            
+            
+            
+            crossCount = sortedKnotting.Count;
+            if(crossCount >= 1){
+                bool isCrossingUnder = sortedKnotting[0].Item2;
+                for (int i = 1; i < crossCount; i++){
+                    if(sortedKnotting[i - 1].Item1 - sortedKnotting[i].Item1 != 1){
+                        isOrdered = false;
+                    }
+                    if(isCrossingUnder == !sortedKnotting[i].Item2){
+                        isCrossingUnder = !isCrossingUnder;
+                        knotCrossingCount++;
+                    }
+                }
+                if(knotCrossingCount != crossCount){
+                    isImpure = true;
+                }
+            }
+        }
+        
         
         string items = "";
+        foreach (Tuple<int, bool> item in knottingOrderTemp){
+            items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
+        }
+        items += "\nknotting:\n";
         foreach (Tuple<int, bool> item in sortedKnotting){
             items += item.Item1.ToString() + "," + item.Item2.ToString() + "\n";
         }
-        Debug.Log(items);
+        Debug.Log(items + "  " + knotCrossingCount + " " + isImpure + " " + isOrdered);
         
-        return 1;
+        return new Tuple<int, bool, bool>(knotCrossingCount, isImpure, isOrdered);
     }
     
     public static float GetAngle(Vector2 vec1, Vector2 vec2, Vector2 vec3) {

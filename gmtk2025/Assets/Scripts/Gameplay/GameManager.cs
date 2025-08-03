@@ -1,11 +1,25 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Collections.Generic;
+using System;
 using System.Linq;
+using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
+    
+    public enum Effect {
+        None,
+        Electricity,
+        Fire,
+        Speed,
+        Ice,
+        Invisibility
+    }
+    
+    
+    
+    public Dictionary<int, Tuple<GameManager.Effect, bool, bool>> knotInventory = new Dictionary<int, Tuple<GameManager.Effect, bool, bool>>();
 
     // Słownik poziomów: nazwa sceny -> indeks
     public Dictionary<string, int> Levels = new Dictionary<string, int>()
@@ -153,6 +167,6 @@ public class GameManager : MonoBehaviour
             return -1;
         }
         
-        return possibleLevels[Random.Range(0, possibleLevels.Count)];
+        return possibleLevels[UnityEngine.Random.Range(0, possibleLevels.Count)];
     }
 }
