@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using TMPro;
 
 public class HairNodePickable : MonoBehaviour {
     private bool dragging = false;
@@ -35,8 +36,11 @@ public class HairNodePickable : MonoBehaviour {
     private bool isGoingDown = false;
     
     private bool isKnotDone = false;
-    private float finishingTime = 1.8f;
+    private float finishingTime = 3.0f;
     private float currentFinishTime = 0.0f;
+    
+    public GameObject textObj;
+    public TextMeshProUGUI text;
      
     
     void Awake() {
@@ -81,6 +85,8 @@ public class HairNodePickable : MonoBehaviour {
                 GameManager.instance.gameCanvas.SetActive(true);
                 GameManager.instance.inKnottingView = false;
                 Cursor.visible = true;
+                GameManager.instance.spellHand.SetActive(true);
+                
                 Destroy(GameObject.Find("hair"));
             }
             else{
@@ -102,23 +108,33 @@ public class HairNodePickable : MonoBehaviour {
                     }
                 }
                 
+                textObj.SetActive(true);
+                
                 GameManager.Effect effect = GameManager.Effect.None;
                 if     (knotResult.Item1 == 3){ // electricity
                     effect = GameManager.Effect.Electricity;
+                    text.text += "\nYou feel a bit of electricity surging through it.";
                 }
                 else if(knotResult.Item1 == 4){ // ice
                     effect = GameManager.Effect.Ice;
+                    text.text += "\nIt feels cold to the touch.";
                 }
                 else if(knotResult.Item1 == 5){ // speed
                     effect = GameManager.Effect.Speed;
+                    text.text += "\nIt's as if the air moves faster around it...";
                 }
                 else if(knotResult.Item1 == 6){ // fire
                     effect = GameManager.Effect.Fire;
+                    text.text += "\nI can see small sparks coming off of it!";
                 }
                 else if(knotResult.Item1 >= 7){ // invisibility
                     effect = GameManager.Effect.Invisibility;
+                    text.text += "\nIt affects the light around it!";
                     
                 }
+                
+                
+                
                 GameManager.instance.knotInventory[indexKey] = new Tuple<GameManager.Effect, bool, bool>(effect, knotResult.Item2, knotResult.Item3);
                 //GameObject.Find("HairNode_" + nodeLastNumber.ToString()).transform.position
                 Vector3 dest = GameObject.Find("HairNode_" + nodeLastNumber.ToString()).transform.position;
