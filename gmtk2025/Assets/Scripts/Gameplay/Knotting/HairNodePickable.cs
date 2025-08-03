@@ -126,7 +126,6 @@ public class HairNodePickable : MonoBehaviour {
                 LeanTween.move(leftHand, dest, 1.7f).setEase(LeanTweenType.easeOutQuart);
                 
                 return;
-                
             }
             
             

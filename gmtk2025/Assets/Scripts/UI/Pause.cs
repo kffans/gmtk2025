@@ -5,6 +5,7 @@ public class Pause : MonoBehaviour
 	public static bool isPaused = false;
 	public GameObject pauseScreen;
     public GameObject optionsScreen;
+    
 	
     void Update()
     {
