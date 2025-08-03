@@ -82,7 +82,6 @@ public class GameManager : MonoBehaviour
         DirectedGraph.Clear();
         currentLevelIndex = 0;
         
-        // Przeładuj scenę całkowicie od nowa
         SceneManager.LoadScene("SceneStartLevel", LoadSceneMode.Single);
         
         // Usuń starą instancję przed załadowaniem nowej sceny
@@ -144,11 +143,11 @@ public class GameManager : MonoBehaviour
 
     private int GetRandomUnconnectedLevel()
     {
+        // przeszukujemy wierzchołki które jeszce nie mają połączeń
         List<int>  possibleLevels = Levels.Values
             .Where(value => !DirectedGraph.ContainsKey(value) && value != currentLevelIndex)
             .ToList();
         
-        // Jeśli wszystkie poziomy są już połączone, losujemy z wszystkich oprócz obecnego
         if (possibleLevels.Count == 0)
         {
             return -1;

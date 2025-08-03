@@ -1,24 +1,49 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class SimpleShadow2D : MonoBehaviour
+public class Shadow : MonoBehaviour
 {
     public float moveSpeed = 3f;
     public float stoppingDistance = 1f;
-
+    public float chaseDistance = 8f; 
     private Transform player;
+    private bool hasDetectedPlayer = false; 
 
     void Start()
     {
+        ResetState();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        ResetState();
+    }
+
+    private void ResetState()
+    {
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
         if (player == null) player = GameObject.Find("Player")?.transform;
+        hasDetectedPlayer = false;
     }
 
     void Update()
     {
         if (player == null) return;
 
-        // Poruszaj się w kierunku gracza jeśli jest wystarczająco daleko
-        if (Vector2.Distance(transform.position, player.position) > stoppingDistance)
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+
+        if (!hasDetectedPlayer && distanceToPlayer <= chaseDistance)
+        {
+            hasDetectedPlayer = true;
+        }
+
+        if (hasDetectedPlayer && distanceToPlayer > stoppingDistance)
         {
             transform.position = Vector2.MoveTowards(
                 transform.position,
@@ -28,10 +53,10 @@ public class SimpleShadow2D : MonoBehaviour
         }
     }
     
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D other)
     {
         Debug.Log("Shadow doszło do kolizji");
-        if (other.CompareTag("Player") && GameManager.instance)
+        if (other.gameObject.CompareTag("Player") && GameManager.instance)
         {
             GameManager.instance.StumbledOnEnemy();
         }
